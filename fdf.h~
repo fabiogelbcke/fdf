@@ -1,0 +1,15 @@
+#ifndef fdf_h
+# define fdf_h
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <mlx.h>
+
+typedef struct s_env
+{
+  void *mlx;
+  void *win;
+} s_env;
+
+#endif

@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include "get_next_line.h"
 #include "libft/libft.h"
+#include <math.h>
 
 typedef struct s_env
 {

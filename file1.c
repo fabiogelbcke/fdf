@@ -11,6 +11,7 @@ int get_x(char *file)
   b = 'a';
   sizex = 1;
   fd = open(file, O_RDONLY);
+  printf("fd = %d\n", fd);
   while(read(fd, &a, 1) && a != '\n')
     {
       if (a == ' ' && b >='0' && b <= '9')
@@ -19,6 +20,7 @@ int get_x(char *file)
     }
   if (b == ' ')
     sizex--;
+  close(fd);
   return sizex;
 }
 
@@ -33,6 +35,7 @@ int get_y(char *file)
   b = 'a';
   sizey = 1;
   fd = open(file, O_RDONLY);
+  printf("fd = %d\n", fd);
   while(read(fd, &a, 1) == 1)
     {
       if (a == '\n' && b != '\n')
@@ -41,6 +44,7 @@ int get_y(char *file)
     }
   if (b == '\n')
     sizey--;
+  close(fd);
   return sizey;
 }
 
@@ -87,8 +91,10 @@ int **get_numbers_table(char *file)
   nbrtable[i] = 0;
   i = 0;
   fd = open(file, O_RDONLY);
+  printf("fd = %d\n", fd);
   while (i < get_y(file))
     getnline(&(nbrtable[i++]), fd);
+  close(fd);
   return nbrtable;
 }
 
@@ -143,7 +149,7 @@ int ***get_coordtable(int ** table, int y, int x)
       while (j < x)
 	{
 	  coordtable[i][j][0] =  (550/sqrt(x*x + y*y))*(j - i + y - 0.5);
-	  coordtable[i][j][1] = 50 + (600/sqrt(x*x+y*y))*(-0.08*table[i][j] + 0.5*j + 0.5*i);
+	  coordtable[i][j][1] = 50 + (600/sqrt(x*x+y*y))*(-0.11*table[i][j] + 0.5*j + 0.5*i);
 	  j++; 
 	}
       i++;
@@ -243,6 +249,7 @@ int main(int argc, char **argv)
     write(1, "wtf", 3);
   printf("%d   %d\n", get_y(argv[1]), get_x(argv[1]));
   table = get_numbers_table(argv[1]);
+  write(1, "getting here\n", 13);
   while (i < get_y(argv[1]))
     {
       j = 0;

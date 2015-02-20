@@ -11,6 +11,7 @@ int get_x(char *file)
   b = 'a';
   sizex = 1;
   fd = open(file, O_RDONLY);
+  printf("fd = %d\n", fd);
   while(read(fd, &a, 1) && a != '\n')
     {
       if (a == ' ' && b >='0' && b <= '9')
@@ -19,6 +20,7 @@ int get_x(char *file)
     }
   if (b == ' ')
     sizex--;
+  close(fd);
   return sizex;
 }
 
@@ -33,6 +35,7 @@ int get_y(char *file)
   b = 'a';
   sizey = 1;
   fd = open(file, O_RDONLY);
+  printf("fd = %d\n", fd);
   while(read(fd, &a, 1) == 1)
     {
       if (a == '\n' && b != '\n')
@@ -41,6 +44,7 @@ int get_y(char *file)
     }
   if (b == '\n')
     sizey--;
+  close(fd);
   return sizey;
 }
 
@@ -87,8 +91,10 @@ int **get_numbers_table(char *file)
   nbrtable[i] = 0;
   i = 0;
   fd = open(file, O_RDONLY);
+  printf("fd = %d\n", fd);
   while (i < get_y(file))
     getnline(&(nbrtable[i++]), fd);
+  close(fd);
   return nbrtable;
 }
 
@@ -142,8 +148,8 @@ int ***get_coordtable(int ** table, int y, int x)
       j = 0;
       while (j < x)
 	{
-	  coordtable[i][j][0] = 250 + 18 * (j - i);
-	  coordtable[i][j][1] = 150 + 35 * (-0.08*table[i][j] + 0.5*j + 0.5*i);
+	  coordtable[i][j][0] =  (550/sqrt(x*x + y*y))*(j - i + y - 0.5);
+	  coordtable[i][j][1] = 50 + (600/sqrt(x*x+y*y))*(-0.08*table[i][j] + 0.5*j + 0.5*i);
 	  j++; 
 	}
       i++;
@@ -169,41 +175,44 @@ void draw_line(int coords[4], void *mlx, void *win)
     }
 }
 
-void draw_coordtable(int ***coordtable, int y, int x)
+void draw_coordtable(void *mlx, int ***coordtable, int y, int x, void *win)
 {
   int i;
   int j;
-  void *win;
-  void *mlx;
   int coordinates[4];
 
-  mlx = mlx_init();
   i = 0;
 
   if (!mlx)
     write(1, "why?", 4);
-  sleep(30);
-  win = mlx_new_window(mlx, x * 1 + 30, y *1 + 30 , "fdf"); 
-  /*while (i < y)
+  sleep(0);
+  write(1, "mlx not null anymore hehe", 25);
+  if (!win)
+    write(1,"win null, wtf?", 13);
+  write(1,"win not null", 12);
+  while (i < y)
     {
       j = 0;
       while (j < x)
 	{
-	  ft_putnbr(j);
-	  write(1, " ", 1);
-	  ft_putnbr(i);
-	  write(1, " \n", 1);
+	  //coordinates[0] = 25 + (650 / (coordtable[0][x - 1][0] - coordtable[y - 1][0][0]))*coordtable[i][j][0];
+	  //coordinates[2] = 25 + (650 / (coordtable[y - 1][x - 1][1] - coordtable[0][0][1]))*coordtable[i][j][1];
 	  coordinates[0] = coordtable[i][j][0];
 	  coordinates[2] = coordtable[i][j][1];
 	  if (j < x-1)
 	    {
-	      coordinates[1] = coordtable[i][j+1][0];
-	      coordinates[3] = coordtable[i][j+1][1];
+	      coordinates[1] = coordtable[i][j + 1][0];
+	      coordinates[3] = coordtable[i][j + 1][1];
+
+	      //	      coordinates[1] = 25 + (650 / (coordtable[0][x - 1][0] - coordtable[y - 1][0][0]))*coordtable[i][j+1][0];
+	      //coordinates[3] = 25 + (650 / (coordtable[y - 1][x - 1][1] - coordtable[0][0][1]))*coordtable[i][j+1][1];
 	      draw_line(coordinates, mlx, win);
 	      //printf("j > 0 i = %d  j = %d\n", i, j); 
 	    }
 	  if (i > 0)
 	    {
+	      //  coordinates[1] = 25 + (650 / (coordtable[0][x - 1][0] - coordtable[y - 1][0][0]))*coordtable[i - 1][j][0];
+              //coordinates[3] = 25 + (650 / (coordtable[y - 1][x - 1][1] - coordtable[0][0][1]))*coordtable[i - 1][j][1];
 	      coordinates[1] = coordtable[i - 1][j][0];
 	      coordinates[3] = coordtable[i - 1][j][1];
 	      draw_line(coordinates, mlx, win);
@@ -213,15 +222,15 @@ void draw_coordtable(int ***coordtable, int y, int x)
 	  j++;
 	}
       i++;
-      }*/
+      }
 }
 
-void draw(int **table, int y, int x)
+void draw(void *mlx, int **table, int y, int x, void *win)
 {
   int ***coordtable;
 
   coordtable = get_coordtable(table, y, x);
-  draw_coordtable(coordtable, y, x);
+  draw_coordtable(mlx, coordtable, y, x, win);
 }
 
 int main(int argc, char **argv)
@@ -229,11 +238,18 @@ int main(int argc, char **argv)
   int **table;
   int i;
   int j;
+  void *mlx;
+  void *win;
 
   i = 0;
   j = 0;
+  mlx = mlx_init();
+  win = mlx_new_window(mlx, 800, 700, "fdf");
+  if (!mlx)
+    write(1, "wtf", 3);
   printf("%d   %d\n", get_y(argv[1]), get_x(argv[1]));
   table = get_numbers_table(argv[1]);
+  write(1, "getting here\n", 13);
   while (i < get_y(argv[1]))
     {
       j = 0;
@@ -245,7 +261,7 @@ int main(int argc, char **argv)
       printf("\n");
       i++;
     }
-  draw(table, i, j);
+  draw(mlx, table, i, j, win);
   sleep(15);
   return (0);
 }
